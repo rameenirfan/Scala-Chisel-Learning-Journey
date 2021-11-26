@@ -1,0 +1,16 @@
+object MyModule {
+def main(args: Array[String]): Unit = {
+
+  val map1 = Map(1 -> "Functional",2 -> "Programming")
+ 
+  println(map1)
+  var map2 = Map(1 -> "Functional",2 -> "Programming")
+  map2 += (3 -> "Asg")
+  println(map2)
+
+  val set1=Set(1,2,3)
+  // set1+= (_5
+  println(set1)
+  var set2=Set(2,8,9)
+  set2+=(6)
+  println(set2)}}

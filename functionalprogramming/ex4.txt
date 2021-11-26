@@ -1,0 +1,8 @@
+import scala.util.Random
+object MyModule {
+  def main(args: Array[String]): Unit = {
+
+var j=List(1,2,3,4,5,6)
+  println(j.head)
+  println(j.tail)
+  println(j.length)}}

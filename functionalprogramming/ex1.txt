@@ -1,0 +1,15 @@
+import scala.util.Random
+object MyModule {
+  def main(args: Array[String]): Unit = {
+
+    
+      var lst = Array(1, 2, 3, 4, 5)
+    
+     
+      var i:Array[Int] = new Array[Int](3)
+      i(0)=1;i(1)=5;i(2)=8
+
+      var a = new Array[Int](3)
+      j(0)=1;j(1)=2
+
+    }}

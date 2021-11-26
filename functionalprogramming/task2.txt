@@ -1,0 +1,14 @@
+import scala.util.Random
+object MyModule {
+  def main(args: Array[String]): Unit = {
+
+def wrapper(lst:List[Char], i:Int, j:Int):List[Char] = {
+      if(i == j) 
+      lst.reverse
+      else wrapper(i.toChar :: lst, i + 1, j)
+    }
+   def charArray(start:Int):List[Char] = {
+   
+    wrapper(List(), start, 123)
+  }
+  println(charArray(80))}}

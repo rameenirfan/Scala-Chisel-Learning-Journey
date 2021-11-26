@@ -1,0 +1,9 @@
+import scala.util.Random
+object MyModule {
+  def main(args: Array[String]): Unit = {
+def Optionfunc(f1: Option[Int]):Unit = {
+  println(f1)
+  }
+
+  Optionfunc(None)
+  }}
