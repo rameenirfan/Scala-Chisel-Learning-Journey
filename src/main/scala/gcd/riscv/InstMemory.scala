@@ -1,17 +1,20 @@
 package riscv
-import chisel3 . _
-import chisel3 . util . _
-import chisel3 . util . experimental . loadMemoryFromFile
-import scala . io . Source
-class InstMemIO extends Bundle{
-val addr = Input ( UInt ( 32 . W ) )
-val inst = Output ( UInt ( 32 . W ) )
-}
-class InstMemory ( initFile : String ) extends Module{
-val io = IO (new InstMemIO )
-val INST_MEM_LEN = 1024
-// INST_MEM_LEN in Bytes or INST_MEM_LEN / 4 in words
-val imem = Mem ( INST_MEM_LEN , UInt ( 32 . W ) )
-loadMemoryFromFile ( imem , initFile )
-io . in
+import chisel3._
+import chisel3.util._
+//import chisel3.util.Fill
+import chisel3.util.experimental.loadMemoryFromFile
+
+
+class InstMemory extends Module{
+	val io = IO(new Bundle{
+
+		val addr = Input(UInt(10.W)) 
+		val inst = Output(UInt(32.W))
+
+})
+		val mem =Mem(1024,UInt(32.W))
+
+		io.inst:= mem(io.addr)
+		loadMemoryFromFile(mem,"/home/rameen/Documents/doc.txt")
+	
 }
