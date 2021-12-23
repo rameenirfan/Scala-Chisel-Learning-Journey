@@ -6,73 +6,92 @@ import chisel3.util.experimental.loadMemoryFromFile
 
 class top extends Module{
 	val io = IO(new Bundle{
+        // val in = Input(UInt(32.W))
         val output = Output(UInt(32.W))
 })
     val alu = Module(new ALU)
     val aluop = Module(new Aluop)
-    val conDEC = Module(new ControlDec)
-    val Conunit =Module (new ControlUnit)
-    val mainmem = Module (new DataMem)
-    val immediate = Module (new Immediate)
-    val instrucution = Module (new InstMemory)
-    val pc = Module (new PC)
-    val reg = Module (new Regfile)
-    val insDec = Module (new TypeDec)
+    // val  branch = Module(new Branch)//
+   
+    // val conunit =Module (new ControlUnit)
+    val datameme = Module (new DataMem)//
+    val immegen = Module (new Immediate)//
+    val insmem = Module (new InstMemory)//(
+    val pc = Module (new PC)//
+    val regfile = Module (new Regfile)
+    val tdeco = Module (new TypeDec())
+    val cdec = Module (new ControlDec())
+    
 
-
-    conDEC.io.Jal := instrucution.io.r_data(6,0)
-    when (instrucution.io.r_data(6,0) === 111.U){
-        pc.io.input := immediate.io.out
+    //jal
+    when (cdec.io.jalr === 1.U){
+        pc.io.input := immegen.io.out.asUInt
     }
-
-    .elsewhen(instrucution.io.r_data(6,0) === 99.U){
-        pc.io.input := immediate.io.out
+    //branch
+    .elsewhen(cdec.io.branch === 1.U){
+        pc.io.input := immegen.io.out.asUInt
     }
-
-    .elsewhen(instrucution.io.r_data(6,0) === 103.U){
-        pc.io.input := immediate.io.out
+    //jalr
+    .elsewhen(cdec.io.jalr === 1.U){
+        pc.io.input := immegen.io.out.asUInt
     }
     .otherwise{
         pc.io.input := 0.U
     }
     
-    instrucution.io.write_address := pc.io.pc_output
-    insDec.io.opCode := instrucution.io.r_data(6,0)
-    Conunit.io.opcode := insDec.io.opCode
-    reg.io.imm_rs1 := instrucution.io.r_data(19,15)
-    reg.io.imm_rs2 := instrucution.io.r_data(24,20)
-    reg.io.rd_reg:= instrucution.io.r_data(11,7)
-    reg.io.reg_write:=Conunit.io.RegWrite
+    insmem.io.addr := pc.io.pc_out
+    //Opcode identify
+    // typedec.io.opCode := insmem.io.inst(6,0)
 
-    conDEC.io.load := instrucution.io.r_data(6,0)
-    conDEC.io.Store := instrucution.io.r_data(6,0)
-
-    immediate.io.Instruction:= instrucution.io.r_data
-    immediate.io.PC := pc.io.pc_output
-    (aluop.io.Inst).asUInt := instrucution.io.r_data
-    aluop.io.branch := Conunit.io.Branch
-
-    
-    alu.io.in_1 := Mux((Conunit.io.Auipc).asBool,pc.io.pc_output,(reg.io.rs1_output).asUInt)
+    tdeco.io.opcode := insmem.io.inst(6,0)
 
 
-    val esi = ((Conunit.io.Immediate).asBool | (Conunit.io.U_type).asBool | (Conunit.io.store).asBool)
-    alu.io.in_2 := Mux(esi,(immediate.io.out)asUInt,(reg.io.rs2_output).asUInt)
-    alu.io.select := Mux(((Conunit.io.store).asBool|(Conunit.io.Load).asBool),0.U,aluop.io.AluOut)
-    reg.io.write_data := (alu.io.output).asSInt
+    cdec.io.R := tdeco.io.R
+    cdec.io.Load := tdeco.io.Load
+    cdec.io.Store := tdeco.io.Store
+    cdec.io.SB := tdeco.io.Branch
+    cdec.io.I := tdeco.io.I
+    cdec.io.Jalr := tdeco.io.Jalr
+    cdec.io.Jal := tdeco.io.Jal
+    cdec.io.Lui := tdeco.io.Lui
+    cdec.io.Auipc := tdeco.io.Auipc
 
 
-    mainmem.io.addr := alu.io.output(7,0)
-    mainmem.io.store_data:= (alu.io.output).asSInt
-    mainmem.io.load := Conunit.io.Load
-    mainmem.io.store := Conunit.io.store
-    reg.io.write_data :=  mainmem.io.Data_Out
-    io.output :=mainmem.io.Data_Out
-    // //rtype
-    // condec.io.Rtype := 0.U
-    // condec.io.Lui := 0.U
-    // condec.io.auipc :=0.U
-    // condec.io.Jalr :=0.U
-    // condec.io.IType :=0.U
-    // condec.io.SBType :=0.U
+
+
+
+
+    //RegisterFile
+    regfile.io.rs1_inp := insmem.io.inst(19,15)
+    regfile.io.rs2_inp := insmem.io.inst(24,20)
+    regfile.io.rd:= insmem.io.inst(11,7)
+    regfile.io.reg_write:=cdec.io.RegWrite
+
+
+    //Immediate Generator
+    immegen.io.ins:= insmem.io.inst
+    immegen.io.pc := pc.io.pc_out
+
+    //ALUOP 
+    (aluop.io.inst).asUInt := insmem.io.inst
+    aluop.io.branch := cdec.io.branch
+
+    //alu
+    alu.io.in_1 := (Mux((cdec.io.auipc).asBool,(pc.io.pc_out).asSInt,regfile.io.rs1_out)).asUInt
+
+
+    val esi = ((cdec.io.immediate).asBool | (cdec.io.lui).asBool | (cdec.io.store).asBool)
+    alu.io.in_2 := (Mux(esi,(immegen.io.out)asSInt,regfile.io.rs2_out)).asUInt
+    alu.io.select := (Mux(((cdec.io.store).asBool|(cdec.io.load).asBool),0.U,aluop.io.alu_out)).asUInt
+    regfile.io.write_data := alu.io.output.asSInt
+
+    //DataMemory
+
+    datameme.io.addr := alu.io.output(7,0)
+    datameme.io.datastore:= regfile.io.rs2_inp.asSInt
+    datameme.io.load := cdec.io.load
+    datameme.io.store := cdec.io.store
+    regfile.io.write_data :=  datameme.io.data_Out
+    io.output := alu.io.output
+
 }
