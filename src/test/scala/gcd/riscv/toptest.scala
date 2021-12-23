@@ -6,7 +6,7 @@ import chisel3.util._
 
 class toptest extends FreeSpec with ChiselScalatestTester{
     "TopFile"  in {
-     test (new Circuit()){ c =>
+     test (new top()){ c =>
  
         c.clock.step(10)
 
